@@ -1,34 +1,9 @@
-/******************************************************************************
-* By accessing or copying this work, you agree to comply with the following   *
-* terms:                                                                      *
-*                                                                             *
-* Copyright (c) 2019-2024 mesibo                                              *
-* https://mesibo.com                                                          *
-* All rights reserved.                                                        *
-*                                                                             *
-* Redistribution is not permitted. Use of this software is subject to the     *
-* conditions specified at https://mesibo.com . When using the source code,    *
-* maintain the copyright notice, conditions, disclaimer, and  links to mesibo * 
-* website, documentation and the source code repository.                      *
-*                                                                             *
-* Do not use the name of mesibo or its contributors to endorse products from  *
-* this software without prior written permission.                             *
-*                                                                             *
-* This software is provided "as is" without warranties. mesibo and its        *
-* contributors are not liable for any damages arising from its use.           *
-*                                                                             *
-* Documentation: https://docs.mesibo.com/                                     *
-*                                                                             *
-* Source Code Repository: https://github.com/mesibo/                          *
-*******************************************************************************/
-
 package org.mesibo.messenger;
 
 import android.app.Application;
 import androidx.lifecycle.LifecycleObserver;
 import android.content.Context;
 import android.util.Log;
-
 import com.mesibo.api.Mesibo;
 import com.mesibo.calls.api.MesiboCall;
 import com.mesibo.calls.api.MesiboGroupCallUiProperties;
@@ -37,6 +12,10 @@ import com.mesibo.mediapicker.MediaPicker;
 import com.mesibo.calls.ui.MesiboCallUi;
 import com.mesibo.messaging.MesiboUI;
 import com.mesibo.messaging.MesiboUiDefaults;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 
 public class MainApplication extends Application implements Mesibo.RestartListener, LifecycleObserver {
     public static final String TAG = "MesiboDemoApplication";
@@ -52,6 +31,21 @@ public class MainApplication extends Application implements Mesibo.RestartListen
         mConfig = new AppConfig(this);
         SampleAPI.init(getApplicationContext());
 
+        // Firebase Authentication
+        FirebaseAuth auth = FirebaseAuth.getInstance();
+        FirebaseUser currentUser = auth.getCurrentUser();
+
+        if (currentUser != null) {
+            // User is signed in, retrieve their unique Firebase UID
+            String userId = currentUser.getUid();
+
+            // Fetch the Mesibo token for the user
+            getMesiboToken(userId);
+        } else {
+            // Handle case when the user is not signed in (e.g., show login screen)
+            Log.d(TAG, "User not signed in");
+        }
+
         mCallUi = MesiboCallUi.getInstance();
         MesiboCall.getInstance().init(mContext);
 
@@ -63,13 +57,13 @@ public class MainApplication extends Application implements Mesibo.RestartListen
         MediaPicker.setToolbarColor(opt.mToolbarColor);
         ImagePicker.getInstance().setApp(this);
 
-	// customize call screen
+        // Customize call screen
         MesiboCall.UiProperties up = MesiboCall.getInstance().getDefaultUiProperties();
-        //up.showScreenSharing = true;
+        // up.showScreenSharing = true;
 
-	// customize conference call screen
+        // Customize conference call screen
         MesiboGroupCallUiProperties gcp = MesiboCall.getInstance().getDefaultGroupCallUiProperties();
-        //gcp.exitPrompt = "Exit?";
+        // gcp.exitPrompt = "Exit?";
     }
 
     public static String getRestartIntent() {
@@ -86,5 +80,30 @@ public class MainApplication extends Application implements Mesibo.RestartListen
         StartUpActivity.newInstance(this, true);
     }
 
-}
+    /**
+     * Fetch the Mesibo Token for the current user.
+     * @param userId The unique ID of the user from Firebase
+     */
+    private void getMesiboToken(String userId) {
+        // You should implement token generation logic here.
+        // The example assumes you have a Firebase database with Mesibo tokens stored for users.
 
+        DatabaseReference tokenRef = FirebaseDatabase.getInstance().getReference("mesibo_tokens").child(userId);
+        tokenRef.get().addOnCompleteListener(task -> {
+            if (task.isSuccessful()) {
+                String mesiboToken = task.getResult().getValue(String.class);
+
+                if (mesiboToken != null) {
+                    // Set the Mesibo token dynamically
+                    Mesibo.setAccessToken(mesiboToken);
+                    Mesibo.start();  // Start the Mesibo service
+                    Log.d(TAG, "Mesibo token set and service started");
+                } else {
+                    Log.d(TAG, "No Mesibo token found for the user.");
+                }
+            } else {
+                Log.d(TAG, "Failed to fetch Mesibo token: " + task.getException());
+            }
+        });
+    }
+}

@@ -1,37 +1,26 @@
 {
   "project_info": {
-    "project_number": "123456",
-    "firebase_url": "https://messenger.firebaseio.com",
-    "project_id": "messenger",
-    "storage_bucket": "messenger.appspot.com"
+    "project_number": "1008442710392",
+    "project_id": "messenger-539fc63b",
+    "storage_bucket": "messenger-539fc63b.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:123456:android:134824",
+        "mobilesdk_app_id": "1:1008442710392:android:1f3e0d99d18704a8dad08d",
         "android_client_info": {
           "package_name": "org.mesibo.messenger"
         }
       },
-      "oauth_client": [
-        {
-          "client_id": "use-your-own-google-services-file.apps.googleusercontent.com",
-          "client_type": 3
-        }
-      ],
+      "oauth_client": [],
       "api_key": [
         {
-          "current_key": "use_your_own_api_key"
+          "current_key": "AIzaSyAbdLDmwZCMOSTQnn7GxbJa8nmy5k38LD8"
         }
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": [
-            {
-              "client_id": "use-your-own-google-services-file.apps.googleusercontent.com",
-              "client_type": 3
-            }
-          ]
+          "other_platform_oauth_client": []
         }
       }
     }
